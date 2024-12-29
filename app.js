@@ -9,7 +9,8 @@ const port = process.env.PORT || 5000;
 
 app.get('/',(req,res) => res.send('Inicio'));
 
-app.route('/login').post(login.doLogin)
+app.route('/back/login').post(login.doLogin)
+
 
 app.listen(port, () =>
   console.log(`Corriendo backend en el puerto: ${port}`)

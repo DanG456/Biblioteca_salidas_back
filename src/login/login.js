@@ -11,10 +11,14 @@ const {
 const toNodePassword = password => password.replace('$2y$', '$2a$');
 
 const doLogin = (req, res) => {
-  const { user, pswd } = req.body;
+  //const { user, pswd } = req.body;
+  console.log('req: ',req)
+  console.log('req body: ',req.body)
+  //console.log('user: ',user)
+  //console.log('password: ',pswd)
   let stat_code = 0;
   let code_desc = '';
-  return user && pswd
+  /*return user && pswd
     ? client.query(queries.doLogin(user), (err, queryResult) => {
         return err
           ? sendMySQLError(res, err.sqlMessage)
@@ -64,7 +68,7 @@ const doLogin = (req, res) => {
                   )
               : sendError(res, 471, 'User not confirmed', user);
       })
-    : sendError(res, 451, 'Empty Field', user);
+    : sendError(res, 451, 'Empty Field', user);*/
 };
 
 
