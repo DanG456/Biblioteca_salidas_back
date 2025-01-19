@@ -1,7 +1,10 @@
 const queries = require('./login-queries');
 const bcrypt = require('bcrypt');
-const client = require('../../db-connection/db-connection');
+//const client = require('../../db-connection/db-connection');
 const jwt = require('jsonwebtoken');
+const {clientQuery} = require('../../db-connection/db-connection')
+const {promiseQuery} = require('../mixins/utils')
+const {createResetToken} = require('../mixins/utils')
 //const signSecret = process.env.SIGN_SECRET || '';
 const {
   sendMySQLError,
@@ -9,6 +12,7 @@ const {
   sendSuccess
 } = require('../mixins/response-mixins');
 const toNodePassword = password => password.replace('$2y$', '$2a$');
+const saltRounds = 5;
 
 const doLogin = (req, res) => {
   const { user_email, user_password } = req.body;
@@ -67,7 +71,64 @@ const doLogin = (req, res) => {
     : sendError(res, 451, 'Empty Field', user_email);
 };
 
+const createAccount = (req,res) => {
+  const {user_name, email, password, phone_number} = req.body
+  if(!user_name|| !email || !password){
+    return sendError(res,451,'Empty field')
+  }
+  Promise.all([bcrypt.hash(password, saltRounds),createResetToken()])
+  .then(([hash,confirmToken]) => {
+    const user = {
+      user_name,
+      email,
+      password: hash,
+      phone_number
+    }
+
+    return saveUser(user)
+  })
+  .then(([token,id]) => {
+    sendSuccess(res,{msg:'Account Created!',token,id});
+  })
+  .catch(err =>{
+    sendError(res,err.code || 500, err.msg || 'Server Error')
+  })
+  //console.log('user_name: ',user_name)
+  //console.log('email: ',email)
+  //console.log('password: ',password)
+};
+
+const saveUser = async (user) => {
+  console.log('save user: ',user)
+  //console.log('typeof password: ',typeof(user.password))
+  //console.log('Conectado a PostgreSQL:', conn._connected); // Debe ser `true`
+  try{
+    const result = await clientQuery(queries.createNewUser(user))
+    console.log(result)
+    return result.rows[0].id
+  }catch{
+    console.log('De nuevo al catch')
+    console.error('Error al guardar el usuario: ',err)
+    err.errno == 1062
+        ? reject({code: 456, msg: 'Repeated email at register'})
+        : err.errno == 1065
+          ? reject({code: 500, msg: 'Query was empty'})
+          : reject({code: 900, msg: err.sqlMessage})
+  }
+  /*new Promise((resolve,reject) => {
+    return conn.query(queries.createNewUser(user),(err,queryResult)=>{
+      return !err
+      ? resolve(queryResult.insertId)
+      : err.errno == 1062
+        ? reject({code: 456, msg: 'Repeated email at register'})
+        : err.errno == 1065
+          ? reject({code: 500, msg: 'Query was empty'})
+          : reject({code: 900, msg: err.sqlMessage})
+    })
+  })*/
+}
 
 module.exports = {
-    doLogin
+    doLogin,
+    createAccount
 }

@@ -16,6 +16,7 @@ app.get('/',(req,res) => res.send('Inicio'));
 
 app.route('/login').post(login.doLogin)
 
+app.route('/create_account').post(login.createAccount)
 
 app.listen(port, () =>
   console.log(`Corriendo backend en el puerto: ${port}`)

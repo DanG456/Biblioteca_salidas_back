@@ -1,15 +1,15 @@
+require('dotenv').config()
 const {Client} = require('pg');
 
-const getWorkingDatabase = () => process.env.MYSQL_DATABASE || 'biblioteca_salidas';
+const getWorkingDatabase = () => process.env.PG_DATABASE;
 
-const getMySqlUser = () => process.env.MYSQL_USER || 'postgres';
+const getMySqlUser = () => process.env.PG_USER;
 
-const getMySqlPassword = () => process.env.MYSQL_PASSWORD || 'Alvmevaleverga12345%';
+const getMySqlPassword = () => process.env.PG_PASSWORD;
 
-const getMySqlHost = () => process.env.MYSQL_HOST || 'localhost';
+const getMySqlHost = () => process.env.PG_HOST;
 
 const connectionData = {
-  connectionLimit: 10,
   host: getMySqlHost(),
   user: getMySqlUser(),
   password: getMySqlPassword(),
@@ -17,5 +17,16 @@ const connectionData = {
   port: 5432
 };
 
-const client = new Client(connectionData)
-module.exports = client;
+async function clientQuery(query){
+  console.log('query recibida: ',query)
+  const client = new Client(connectionData)
+  //console.log('conexion con el cliente: ',client) //esta si la mostro
+  await client.connect()
+  const now = await client.query(query)
+  console.log('Conexion completada, mostrando const now: ',now) //esta no la mostro
+  await client.end();
+
+  return now
+}
+
+module.exports = {clientQuery};
