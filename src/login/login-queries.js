@@ -13,10 +13,10 @@ WHERE
 
 const createNewUser = user => `
 INSERT INTO users
-    user_name,
+    (user_name,
     password,
     email,
-    phone_number
+    phone_number)
 VALUES
 (   '${user.user_name}',
     '${user.password}',
